@@ -20,12 +20,14 @@
   },
   "homepage": "https://github.com/gyeonseokoh/Pharos-Backend#readme",
   "dependencies": {
+    "@hocuspocus/provider": "^4.0.0",
     "@hocuspocus/server": "^4.0.0",
     "crossws": "^0.4.5",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "ws": "^8.20.0"
+    "ws": "^8.20.0",
+    "yjs": "^13.6.30"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
