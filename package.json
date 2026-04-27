@@ -2,6 +2,9 @@
   "name": "pharos-backend",
   "version": "0.1.0",
   "description": "\"# Pharos-Backend\"",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
