@@ -4,6 +4,7 @@ import { app } from './app.js'
 import type { IncomingMessage } from 'node:http'
 import { WebSocketServer } from 'ws'
 import { hocuspocus } from './hocuspocus.js'
+import { migrate } from './db/migrate.js'
 
 // IncomingRequest -> web 표준 request 변환
 // hocuspocus v4 의 handleConnection의 요구사항(web 표준 Request 요구)에 따름.
@@ -19,6 +20,9 @@ function toWebRequest(req: IncomingMessage): Request {
 
     return new Request(url, { headers })
 }
+
+// 서버 시작 전 DB migrate
+migrate()
 
 
 const server = createServer(app)
