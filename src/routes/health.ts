@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
-import { hocuspocus } from '../hocuspocus'
+import { hocuspocus } from '../hocuspocus.js'
 
 export const healthRouter = Router()
 
