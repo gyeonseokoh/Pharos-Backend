@@ -1,42 +1,45 @@
-import { db } from '../client.js'
+import { pool } from '../client.js'
 
 export interface User {
-  id:           number
-  github_id:    number
-  login:        string
-  access_token: string
-  created_at:   string
-  updated_at:   string
+    id:           number
+    github_id:    number
+    login:        string
+    access_token: string
+    created_at:   string
+    updated_at:   string
 }
 
 export interface UpsertUserParams {
-  github_id:    number
-  login:        string
-  access_token: string
+    github_id:    number
+    login:        string
+    access_token: string
 }
 
 export const UserRepo = {
-  upsert(params: UpsertUserParams): User {
-    return db.prepare<UpsertUserParams, User>(`
-      INSERT INTO users (github_id, login, access_token)
-      VALUES ($github_id, $login, $access_token)
-      ON CONFLICT (github_id) DO UPDATE SET
-        login        = excluded.login,
-        access_token = excluded.access_token,
-        updated_at   = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-      RETURNING *
-    `).get(params)!
-  },
+    async upsert(params: UpsertUserParams): Promise<User> {
+        const { rows } = await pool.query<User>(`
+            INSERT INTO users (github_id, login, access_token)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (github_id) DO UPDATE SET
+                login        = EXCLUDED.login,
+                access_token = EXCLUDED.access_token,
+                updated_at   = NOW()
+            RETURNING *
+        `, [params.github_id, params.login, params.access_token])
+        return rows[0]
+    },
 
-  findById(id: number): User | undefined {
-    return db.prepare<{ id: number }, User>(
-      `SELECT * FROM users WHERE id = $id`
-    ).get({ id })
-  },
+    async findById(id: number): Promise<User | undefined> {
+        const { rows } = await pool.query<User>(
+            `SELECT * FROM users WHERE id = $1`, [id]
+        )
+        return rows[0]
+    },
 
-  findByGithubId(github_id: number): User | undefined {
-    return db.prepare<{ github_id: number }, User>(
-      `SELECT * FROM users WHERE github_id = $github_id`
-    ).get({ github_id })
-  },
+    async findByGithubId(github_id: number): Promise<User | undefined> {
+        const { rows } = await pool.query<User>(
+            `SELECT * FROM users WHERE github_id = $1`, [github_id]
+        )
+        return rows[0]
+    },
 }

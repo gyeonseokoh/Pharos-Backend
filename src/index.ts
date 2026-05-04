@@ -22,7 +22,7 @@ function toWebRequest(req: IncomingMessage): Request {
 }
 
 // 서버 시작 전 DB migrate
-migrate()
+await migrate()
 
 
 const server = createServer(app)

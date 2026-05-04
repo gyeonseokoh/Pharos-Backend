@@ -23,7 +23,7 @@ export const config = {
     PORT: +optionalEnv('PORT', '1234'),
 
     JWT_SECRET: requireEnv('JWT_SECRET'),
-    DB_PATH   : requireEnv('DB_PATH'),
+    DB_URL    : requireEnv('DB_URL'),
 
     GITHUB_APP_ID:         optionalEnv('GITHUB_APP_ID', ''),
     GITHUB_CLIENT_ID:      optionalEnv('GITHUB_CLIENT_ID', ''),

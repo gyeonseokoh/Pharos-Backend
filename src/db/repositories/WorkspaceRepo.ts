@@ -1,60 +1,72 @@
-import { db } from '../client.js'
+import { pool } from '../client.js'
 
 export interface Workspace {
-  id:         number
-  name:       string
-  owner_id:   number
-  created_at: string
+    id:         number
+    name:       string
+    owner_id:   number
+    created_at: string
 }
 
 export interface WorkspaceMember {
-  workspace_id: number
-  user_id:      number
-  role:         'owner' | 'member'
-  joined_at:    string
+    workspace_id: number
+    user_id:      number
+    role:         'owner' | 'member'
+    joined_at:    string
 }
 
 export const WorkspaceRepo = {
-  create(params: { name: string; owner_id: number }): Workspace {
-    const workspace = db.prepare<typeof params, Workspace>(`
-      INSERT INTO workspaces (name, owner_id)
-      VALUES ($name, $owner_id)
-      RETURNING *
-    `).get(params)!
+    async create(params: { name: string; owner_id: number }): Promise<Workspace> {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+            const { rows } = await client.query<Workspace>(`
+                INSERT INTO workspaces (name, owner_id)
+                VALUES ($1, $2)
+                RETURNING *
+            `, [params.name, params.owner_id])
+            const workspace = rows[0]
+            await client.query(`
+                INSERT INTO workspace_members (workspace_id, user_id, role)
+                VALUES ($1, $2, 'owner')
+            `, [workspace.id, params.owner_id])
+            await client.query('COMMIT')
+            return workspace
+        } catch (err) {
+            await client.query('ROLLBACK')
+            throw err
+        } finally {
+            client.release()
+        }
+    },
 
-    // owner를 workspace_members에도 등록
-    db.prepare(`
-      INSERT INTO workspace_members (workspace_id, user_id, role)
-      VALUES (?, ?, 'owner')
-    `).run(workspace.id, params.owner_id)
+    async findById(id: number): Promise<Workspace | undefined> {
+        const { rows } = await pool.query<Workspace>(
+            `SELECT * FROM workspaces WHERE id = $1`, [id]
+        )
+        return rows[0]
+    },
 
-    return workspace
-  },
+    async findByOwner(owner_id: number): Promise<Workspace[]> {
+        const { rows } = await pool.query<Workspace>(
+            `SELECT * FROM workspaces WHERE owner_id = $1`, [owner_id]
+        )
+        return rows
+    },
 
-  findById(id: number): Workspace | undefined {
-    return db.prepare<{ id: number }, Workspace>(
-      `SELECT * FROM workspaces WHERE id = $id`
-    ).get({ id })
-  },
+    async addMember(params: { workspace_id: number; user_id: number }): Promise<WorkspaceMember | undefined> {
+        const { rows } = await pool.query<WorkspaceMember>(`
+            INSERT INTO workspace_members (workspace_id, user_id, role)
+            VALUES ($1, $2, 'member')
+            ON CONFLICT (workspace_id, user_id) DO NOTHING
+            RETURNING *
+        `, [params.workspace_id, params.user_id])
+        return rows[0]
+    },
 
-  findByOwner(owner_id: number): Workspace[] {
-    return db.prepare<{ owner_id: number }, Workspace>(
-      `SELECT * FROM workspaces WHERE owner_id = $owner_id`
-    ).all({ owner_id })
-  },
-
-  addMember(params: { workspace_id: number; user_id: number }): WorkspaceMember {
-    return db.prepare<typeof params, WorkspaceMember>(`
-      INSERT INTO workspace_members (workspace_id, user_id, role)
-      VALUES ($workspace_id, $user_id, 'member')
-      ON CONFLICT (workspace_id, user_id) DO NOTHING
-      RETURNING *
-    `).get(params)!
-  },
-
-  getMembers(workspace_id: number): WorkspaceMember[] {
-    return db.prepare<{ workspace_id: number }, WorkspaceMember>(
-      `SELECT * FROM workspace_members WHERE workspace_id = $workspace_id`
-    ).all({ workspace_id })
-  },
+    async getMembers(workspace_id: number): Promise<WorkspaceMember[]> {
+        const { rows } = await pool.query<WorkspaceMember>(
+            `SELECT * FROM workspace_members WHERE workspace_id = $1`, [workspace_id]
+        )
+        return rows
+    },
 }
