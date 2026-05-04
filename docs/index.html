@@ -1,303 +1,99 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pharos — Server Wake Trigger</title>
-  <style>
-    :root {
-      --bg: #0f0f0f;
-      --surface: #1a1a1a;
-      --border: #2a2a2a;
-      --text: #e0e0e0;
-      --muted: #888;
-      --green: #4ade80;
-      --yellow: #fbbf24;
-      --red: #f87171;
-      --blue: #60a5fa;
-      --radius: 8px;
-      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      width: 100%;
-      max-width: 480px;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .logo {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; color: white; letter-spacing: -1px;
-    }
-    .title { font-size: 16px; font-weight: 600; }
-    .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    .status-block {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-    .dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      transition: background 0.3s;
-    }
-    .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: pulse 1s infinite; }
-    .dot.red { background: var(--red); }
-    .dot.gray { background: #444; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-    .status-label {
-      font-size: 15px;
-      font-weight: 600;
-    }
-    .status-meta {
-      font-size: 12px;
-      color: var(--muted);
-      font-family: var(--mono);
-      margin-top: 6px;
-    }
-
-    .log-block {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    .log-entry {
-      font-size: 11px;
-      font-family: var(--mono);
-      color: var(--muted);
-      line-height: 1.8;
-    }
-    .log-entry.ok { color: var(--green); }
-    .log-entry.err { color: var(--red); }
-    .log-entry.info { color: var(--blue); }
-
-    .config-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    input[type="text"] {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-size: 12px;
-      font-family: var(--mono);
-      padding: 8px 12px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input[type="text"]:focus { border-color: #6366f1; }
-    button {
-      background: #6366f1;
-      border: none;
-      border-radius: var(--radius);
-      color: white;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 8px 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
-    }
-    button:hover { background: #4f46e5; }
-    button:active { background: #4338ca; }
-    button:disabled { background: #333; color: var(--muted); cursor: not-allowed; }
-
-    .footer-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      color: var(--muted);
-    }
-    #next-ping { font-family: var(--mono); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharos Wake</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --color-bg: #0d1117;
+    --color-text: #e6edf3;
+    --color-text-muted: #7d8590;
+    --color-success: #3fb950;
+    --color-warning: #d29922;
+    --color-error: #f85149;
+    --color-border: rgba(255,255,255,0.08);
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  html, body { height: 100%; background: var(--color-bg); color: var(--color-text); font-family: var(--font-mono); }
+  body { display: flex; align-items: center; justify-content: center; }
+  .wrap { width: 100%; max-width: 480px; padding: 2rem; }
+  .badge { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2rem; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-muted); }
+  h1 { font-size: 1rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.4rem; }
+  .url { font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 2rem; word-break: break-all; }
+  .status-row { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: 6px; margin-bottom: 1rem; }
+  .indicator { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--color-text-muted); }
+  .indicator.ok { background: var(--color-success); box-shadow: 0 0 6px var(--color-success); }
+  .indicator.error { background: var(--color-error); }
+  .indicator.pinging { background: var(--color-warning); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .status-text { font-size: 0.8rem; color: var(--color-text-muted); flex: 1; }
+  .status-text strong { color: var(--color-text); display: block; font-size: 0.85rem; margin-bottom: 0.1rem; }
+  .timestamp { font-size: 0.7rem; color: var(--color-text-muted); }
+  .log { border: 1px solid var(--color-border); border-radius: 6px; padding: 0.75rem; max-height: 180px; overflow-y: auto; font-size: 0.7rem; line-height: 1.8; color: var(--color-text-muted); }
+  .log-entry.ok { color: var(--color-success); }
+  .log-entry.error { color: var(--color-error); }
+  .log-entry.info { color: var(--color-text-muted); }
+  .meta { margin-top: 1rem; font-size: 0.65rem; color: var(--color-text-muted); opacity: 0.5; }
+</style>
 </head>
 <body>
-<div class="card">
-  <div class="header">
-    <div class="logo">Ph</div>
-    <div>
-      <div class="title">Pharos Server</div>
-      <div class="subtitle">Wake Trigger — Render Free Tier</div>
+<div class="wrap">
+  <div class="badge"><span class="dot"></span> Pharos Keep-Alive</div>
+  <h1>pharos-backend.onrender.com</h1>
+  <p class="url">https://pharos-backend.onrender.com/health</p>
+  <div class="status-row">
+    <div class="indicator pinging" id="indicator"></div>
+    <div class="status-text">
+      <strong id="status-label">연결 확인 중...</strong>
+      <span id="status-detail">health endpoint polling</span>
     </div>
+    <span class="timestamp" id="last-ping">--:--:--</span>
   </div>
-
-  <div class="status-block">
-    <div class="status-row">
-      <div class="dot gray" id="dot"></div>
-      <span class="status-label" id="status-label">대기 중...</span>
-    </div>
-    <div class="status-meta" id="status-meta">—</div>
-  </div>
-
-  <div class="log-block" id="log"></div>
-
-  <div class="config-row">
-    <input type="text" id="url-input" placeholder="https://your-app.onrender.com" />
-    <script defer>document.querySelector("#url-input").value = "https://pharos-backend.onrender.com"</script>
-    <button id="ping-btn" onclick="manualPing()">지금 Ping</button>
-  </div>
-
-  <div class="footer-row">
-    <span>자동 폴링: 14분 간격 (페이지 열린 동안)</span>
-    <span id="next-ping">—</span>
-  </div>
+  <div class="log" id="log"></div>
+  <p class="meta">매 4분마다 자동 폴링 · Render Free Tier cold start 방지</p>
 </div>
-
 <script>
-  const POLL_MS = 14 * 60 * 1000
-  const STORAGE_KEY = 'pharos_render_url'
-
-  let renderUrl = localStorage.getItem(STORAGE_KEY) || ''
-  let pollTimer = null
-  let nextPingAt = null
-  let countdownTimer = null
-
-  const urlInput = document.getElementById('url-input')
-  const pingBtn  = document.getElementById('ping-btn')
-  const dot      = document.getElementById('dot')
-  const label    = document.getElementById('status-label')
-  const meta     = document.getElementById('status-meta')
-  const logEl    = document.getElementById('log')
-  const nextEl   = document.getElementById('next-ping')
-
-  if (renderUrl) urlInput.value = renderUrl
-
-  function addLog(msg, type = '') {
-    const now = new Date().toLocaleTimeString('ko-KR', { hour12: false })
-    const el = document.createElement('div')
-    el.className = 'log-entry ' + type
-    el.textContent = `[${now}] ${msg}`
-    logEl.prepend(el)
-    if (logEl.children.length > 50) logEl.lastChild.remove()
+const HEALTH_URL = 'https://pharos-backend.onrender.com/health'
+const INTERVAL_MS = 4 * 60 * 1000
+const indicator = document.getElementById('indicator')
+const statusLabel = document.getElementById('status-label')
+const statusDetail = document.getElementById('status-detail')
+const lastPing = document.getElementById('last-ping')
+const logEl = document.getElementById('log')
+function now() { return new Date().toLocaleTimeString('ko-KR', { hour12: false }) }
+function addLog(msg, type = 'info') {
+  const el = document.createElement('div')
+  el.className = `log-entry ${type}`
+  el.textContent = `[${now()}] ${msg}`
+  logEl.prepend(el)
+  while (logEl.children.length > 50) logEl.removeChild(logEl.lastChild)
+}
+async function ping() {
+  indicator.className = 'indicator pinging'
+  statusLabel.textContent = '폴링 중...'
+  addLog('GET /health', 'info')
+  try {
+    const res = await fetch(HEALTH_URL, { signal: AbortSignal.timeout(10000) })
+    const data = await res.json()
+    lastPing.textContent = now()
+    if (res.ok) {
+      indicator.className = 'indicator ok'
+      statusLabel.textContent = '서버 활성'
+      statusDetail.textContent = `connections: ${data.connections ?? 0}`
+      addLog(`200 OK · connections: ${data.connections ?? 0}`, 'ok')
+    } else { throw new Error(`HTTP ${res.status}`) }
+  } catch (err) {
+    indicator.className = 'indicator error'
+    statusLabel.textContent = '응답 없음'
+    statusDetail.textContent = err.message
+    addLog(`ERR ${err.message}`, 'error')
   }
-
-  function setStatus(state, text, detail) {
-    dot.className = 'dot ' + state
-    label.textContent = text
-    meta.textContent = detail || '—'
-  }
-
-  async function ping() {
-    const url = urlInput.value.trim().replace(/\/$/, '')
-    if (!url) { addLog('URL을 먼저 입력하세요.', 'err'); return }
-
-    localStorage.setItem(STORAGE_KEY, url)
-    renderUrl = url
-
-    setStatus('yellow', '연결 중...', url + '/health')
-    pingBtn.disabled = true
-    addLog(`→ GET ${url}/health`, 'info')
-
-    const start = Date.now()
-    try {
-      const res = await fetch(url + '/health', { signal: AbortSignal.timeout(15000) })
-      const ms  = Date.now() - start
-
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setStatus('green', '서버 온라인', `응답 ${ms}ms · ${data.timestamp || ''}`)
-        addLog(`✓ 200 OK (${ms}ms)${data.connections !== undefined ? ' · conn: ' + data.connections : ''}`, 'ok')
-      } else {
-        setStatus('red', `오류 ${res.status}`, `${ms}ms`)
-        addLog(`✗ HTTP ${res.status} (${ms}ms)`, 'err')
-      }
-    } catch (e) {
-      const ms = Date.now() - start
-      if (e.name === 'TimeoutError') {
-        setStatus('yellow', '웨이크업 대기 중', 'cold start — 30~60초 소요')
-        addLog(`⏳ 타임아웃 (${ms}ms) — cold start 중일 수 있음`, 'err')
-      } else {
-        setStatus('red', '연결 실패', e.message)
-        addLog(`✗ ${e.name}: ${e.message}`, 'err')
-      }
-    } finally {
-      pingBtn.disabled = false
-      schedulePoll()
-    }
-  }
-
-  function manualPing() {
-    clearTimeout(pollTimer)
-    clearInterval(countdownTimer)
-    ping()
-  }
-
-  function schedulePoll() {
-    clearTimeout(pollTimer)
-    clearInterval(countdownTimer)
-
-    nextPingAt = Date.now() + POLL_MS
-    updateCountdown()
-    countdownTimer = setInterval(updateCountdown, 1000)
-    pollTimer = setTimeout(() => { addLog('⏰ 자동 폴링', 'info'); ping() }, POLL_MS)
-  }
-
-  function updateCountdown() {
-    if (!nextPingAt) return
-    const remaining = Math.max(0, nextPingAt - Date.now())
-    const m = Math.floor(remaining / 60000)
-    const s = Math.floor((remaining % 60000) / 1000)
-    nextEl.textContent = `다음 ping: ${m}:${s.toString().padStart(2,'0')}`
-    if (remaining === 0) clearInterval(countdownTimer)
-  }
-
-  // 페이지 로드 시 저장된 URL이 있으면 자동 ping
-  if (renderUrl) {
-    addLog('페이지 로드 — 자동 ping 시작', 'info')
-    ping()
-  } else {
-    addLog('Render URL을 입력하고 Ping 버튼을 누르세요.', 'info')
-  }
-
-  // 탭 재활성화 시 ping
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && renderUrl) {
-      addLog('탭 재활성화 — ping', 'info')
-      manualPing()
-    }
-  })
+}
+ping()
+setInterval(ping, INTERVAL_MS)
 </script>
 </body>
 </html>
