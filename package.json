@@ -24,6 +24,7 @@
   "homepage": "https://github.com/gyeonseokoh/Pharos-Backend#readme",
   "dependencies": {
     "@hocuspocus/server": "^4.0.0",
+    "@octokit/webhooks": "^14.2.0",
     "cors": "^2.8.6",
     "crossws": "^0.4.5",
     "dotenv": "^17.4.2",
