@@ -2,7 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import { healthRouter } from './routes/health.js'
 import { webhookRouter } from './routes/webhook.js'
-import { authRouter } from './routes/auth.js'   // ← 추가
+import { authRouter } from './routes/auth.js'
+import { devConsoleRouter } from './routes/devConsole.js'
 
 export const app = express()
 
@@ -22,3 +23,7 @@ app.use('/webhook/github', webhookRouter)
 app.use(express.json())
 app.use('/health', healthRouter)
 app.use('/auth', authRouter) // authRouter 마운트만 추가
+
+// ⚠️ 개발용 — 데모 완료 후 아래 두 줄 삭제
+app.use('/dev/console', express.urlencoded({ extended: false }))
+app.use('/dev/console', devConsoleRouter)

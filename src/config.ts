@@ -30,12 +30,11 @@ export const config = {
     GITHUB_CLIENT_SECRET:  optionalEnv('GITHUB_CLIENT_SECRET', ''),
     GITHUB_WEBHOOK_SECRET: optionalEnv('GITHUB_WEBHOOK_SECRET', ''),
 
-    // ← 수정: 'obsidian://pharos' → 'obsidian://pharos-callback'
-    //   auth/jwt.ts의 pharos-callback protocol handler와 일치해야 함
     CLIENT_URL: optionalEnv('CLIENT_URL', 'obsidian://pharos-callback'),
 
-    // ← 수정: 후행 슬래시 제거 — auth.ts에서 URL 조합 시 이중 슬래시 방지
     SERVER_URL: optionalEnv('SERVER_URL', 'https://pharos-backend.onrender.com'),
+
+    ADMIN_SECRET: process.env.ADMIN_SECRET ?? '',
 } as const
 
 export type Config = typeof config
