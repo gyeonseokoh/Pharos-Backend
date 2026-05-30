@@ -44,6 +44,28 @@ CREATE TABLE IF NOT EXISTS analysis_jobs (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at    TIMESTAMPTZ
 );
+
+CREATE TABLE IF NOT EXISTS documents (
+  id            SERIAL      PRIMARY KEY,
+  -- documentName 형식: "{workspaceId}/{filePath}"
+  -- 예: "3/Pharos/tasks/TASK-1.md"
+  document_name TEXT        NOT NULL UNIQUE,
+  -- Hocuspocus가 인코딩한 Yjs 상태 바이너리 (Y.encodeStateAsUpdate 결과)
+  yjs_state     BYTEA       NOT NULL,
+  workspace_id  INTEGER     NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS invites (
+  id            SERIAL      PRIMARY KEY,
+  workspace_id  INTEGER     NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  token         TEXT        NOT NULL UNIQUE,
+  -- 초대받을 GitHub 로그인명. NULL이면 누구나 수락 가능.
+  invitee_login TEXT,
+  expires_at    TIMESTAMPTZ NOT NULL,
+  accepted_at   TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `
 
 export async function migrate(): Promise<void> {
