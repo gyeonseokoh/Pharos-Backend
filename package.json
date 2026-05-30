@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/gyeonseokoh/Pharos-Backend#readme",
   "dependencies": {
+    "@hocuspocus/extension-database": "^4.1.0",
     "@hocuspocus/server": "^4.0.0",
     "@octokit/webhooks": "^14.2.0",
     "cors": "^2.8.6",
