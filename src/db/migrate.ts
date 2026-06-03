@@ -47,10 +47,7 @@ CREATE TABLE IF NOT EXISTS analysis_jobs (
 
 CREATE TABLE IF NOT EXISTS documents (
   id            SERIAL      PRIMARY KEY,
-  -- documentName 형식: "{workspaceId}/{filePath}"
-  -- 예: "3/Pharos/tasks/TASK-1.md"
   document_name TEXT        NOT NULL UNIQUE,
-  -- Hocuspocus가 인코딩한 Yjs 상태 바이너리 (Y.encodeStateAsUpdate 결과)
   yjs_state     BYTEA       NOT NULL,
   workspace_id  INTEGER     NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -60,15 +57,51 @@ CREATE TABLE IF NOT EXISTS invites (
   id            SERIAL      PRIMARY KEY,
   workspace_id  INTEGER     NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   token         TEXT        NOT NULL UNIQUE,
-  -- 초대받을 GitHub 로그인명. NULL이면 누구나 수락 가능.
-  invitee_login TEXT,
+  permission    TEXT        NOT NULL DEFAULT 'WRITE'
+                CHECK (permission IN ('READ', 'WRITE', 'ADMIN')),
+  email         TEXT,
   expires_at    TIMESTAMPTZ NOT NULL,
   accepted_at   TIMESTAMPTZ,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 `
 
+// CREATE TABLE IF NOT EXISTS 는 기존 테이블을 변경하지 않으므로
+// invitee_login → permission/email 마이그레이션을 ALTER TABLE로 처리.
+// 컬럼이 이미 존재하면 오류 없이 넘어가도록 DO $$ ... EXCEPTION WHEN duplicate_column 사용.
+const ALTER_INVITES = /* sql */`
+DO $$
+BEGIN
+  -- invitee_login 제거 (구버전 컬럼)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'invites' AND column_name = 'invitee_login'
+  ) THEN
+    ALTER TABLE invites DROP COLUMN invitee_login;
+  END IF;
+
+  -- permission 추가
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'invites' AND column_name = 'permission'
+  ) THEN
+    ALTER TABLE invites
+      ADD COLUMN permission TEXT NOT NULL DEFAULT 'WRITE'
+      CHECK (permission IN ('READ', 'WRITE', 'ADMIN'));
+  END IF;
+
+  -- email 추가
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'invites' AND column_name = 'email'
+  ) THEN
+    ALTER TABLE invites ADD COLUMN email TEXT;
+  END IF;
+END $$;
+`
+
 export async function migrate(): Promise<void> {
     await pool.query(SCHEMA)
+    await pool.query(ALTER_INVITES)
     console.log('[db] migration complete')
 }
