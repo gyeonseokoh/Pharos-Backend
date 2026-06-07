@@ -14,8 +14,12 @@ app.use(cors({
     origin: [
         /\.github\.io$/,
         'http://localhost:1234',
+        'app://obsidian.md',        // Obsidian 데스크탑 (Electron)
+        'capacitor://localhost',
     ],
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
 }))
 
 // /webhook/github 는 raw body 필요 → express.json() 보다 먼저 처리
